@@ -1,4 +1,4 @@
-![Keyword Relevance & Sentiment Analysis Tool](https://raw.githubusercontent.com/nurdigitalmarketing/keyword-relevance-and-sentiment-app/main/keyword-relevance-and-sentiment-app.png)
+![Keyword Relevance & Sentiment Analysis Tool](https://raw.githubusercontent.com/nurdigitalmarketing/keyword-relevance-and-entities-analyzer/main/keyword-relevance-and-sentiment-app.png)
 
 # Keyword Relevance & Sentiment Analysis Tool
 
