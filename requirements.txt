@@ -1,6 +1,5 @@
 streamlit
 spacy
-pydantic==2.7.3
 pytextrank
 textblob
 matplotlib
