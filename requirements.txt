@@ -1,5 +1,5 @@
 streamlit
-spacy
+spacy==3.4.2
 pytextrank
 textblob
 altair
