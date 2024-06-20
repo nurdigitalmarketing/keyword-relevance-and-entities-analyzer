@@ -1,3 +1,4 @@
+pyhton==3.12.4
 streamlit
 spacy
 pytextrank
