@@ -1,6 +1,6 @@
 streamlit
-spacy==3.7.4
+spacy
 pytextrank
 textblob
-altair
+matplotlib
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.2.0/en_core_web_sm-3.2.0.tar.gz
