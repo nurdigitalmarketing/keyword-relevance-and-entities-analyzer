@@ -4,19 +4,34 @@ import pytextrank
 from textblob import TextBlob
 import pandas as pd
 import matplotlib.pyplot as plt
+from langdetect import detect
 
-# Carica il modello spaCy con fallback per il download
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    st.error("Il modello 'en_core_web_sm' non è stato trovato. Installalo eseguendo 'python -m spacy download en_core_web_sm'")
-    from spacy.cli import download
-    download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+# Funzione per caricare il modello spaCy appropriato
+@st.cache_resource
+def load_spacy_model(lang):
+    if lang == 'en':
+        try:
+            return spacy.load("en_core_web_sm")
+        except OSError:
+            st.error("Il modello 'en_core_web_sm' non è stato trovato. Installalo eseguendo 'python -m spacy download en_core_web_sm'")
+            spacy.cli.download("en_core_web_sm")
+            return spacy.load("en_core_web_sm")
+    elif lang == 'it':
+        try:
+            return spacy.load("it_core_news_sm")
+        except OSError:
+            st.error("Il modello 'it_core_news_sm' non è stato trovato. Installalo eseguendo 'python -m spacy download it_core_news_sm'")
+            spacy.cli.download("it_core_news_sm")
+            return spacy.load("it_core_news_sm")
 
-nlp.add_pipe("textrank")
+# Funzione per rilevare la lingua
+def detect_language(text):
+    try:
+        return detect(text)
+    except:
+        return 'en'  # Default to English if detection fails
 
-def extract_keywords(text):
+def extract_keywords(text, nlp):
     doc = nlp(text)
     keywords = [(phrase.text, phrase.rank) for phrase in doc._.phrases[:10]]
     return keywords
@@ -67,7 +82,7 @@ def plot_keyword_relevance(keywords):
     ax.set_xlabel('Punteggio')
     ax.set_ylabel('Parola Chiave')
     ax.set_title('Keyword Relevance Scores')
-    ax.invert_yaxis()  # Cambiato da plt.gca().invert_yaxis() a ax.invert_yaxis()
+    ax.invert_yaxis()
     st.pyplot(fig)
 
 def get_relevance_label(relevance):
@@ -135,35 +150,43 @@ target_keywords_input = st.text_input(
 )
 
 if st.button("Analizza"):
-    keywords = extract_keywords(user_input)
-    polarity, subjectivity = analyze_sentiment(user_input)
-    
-    # Estrai parole chiave target e la loro rilevanza
-    target_keywords = [keyword.strip() for keyword in target_keywords_input.split(',') if keyword.strip()]
-    target_keywords_relevance = [keyword for keyword in keywords if keyword[0] in target_keywords]
-    
-    # Visualizza parole chiave target in tabella
-    st.subheader("Target Keyword Relevance")
-    if target_keywords_relevance:
-        target_keywords_df = pd.DataFrame(target_keywords_relevance, columns=["Parola Chiave Target", "Punteggio"])
-        st.table(target_keywords_df)
-    else:
-        st.write("Nessuna delle parole chiave target trovata nel testo.")
-    
-    # Visualizza parole chiave in tabella con etichetta di rilevanza
-    display_relevance_table(keywords)
-    
-    # Visualizza grafico a barre dei punteggi di rilevanza
-    plot_keyword_relevance(keywords)
+    if user_input:
+        # Rileva la lingua del testo inserito
+        lang = detect_language(user_input)
+        
+        # Carica il modello appropriato
+        nlp = load_spacy_model(lang)
+        nlp.add_pipe("textrank")
 
-    # Visualizza polarità e soggettività
-    display_sentiment_analysis(polarity, subjectivity)
+        keywords = extract_keywords(user_input, nlp)
+        polarity, subjectivity = analyze_sentiment(user_input)
+        
+        # Estrai parole chiave target e la loro rilevanza
+        target_keywords = [keyword.strip() for keyword in target_keywords_input.split(',') if keyword.strip()]
+        target_keywords_relevance = [keyword for keyword in keywords if keyword[0] in target_keywords]
+        
+        # Visualizza parole chiave target in tabella
+        st.subheader("Target Keyword Relevance")
+        if target_keywords_relevance:
+            target_keywords_df = pd.DataFrame(target_keywords_relevance, columns=["Parola Chiave Target", "Punteggio"])
+            st.table(target_keywords_df)
+        else:
+            st.write("Nessuna delle parole chiave target trovata nel testo.")
+        
+        # Visualizza parole chiave in tabella con etichetta di rilevanza
+        display_relevance_table(keywords)
+        
+        # Visualizza grafico a barre dei punteggi di rilevanza
+        plot_keyword_relevance(keywords)
 
-    # Spiegazioni dettagliate dei punteggi
-    st.info("""
-    **Cosa significano i punteggi?**
-    
-    - **Polarità**: Indica l'orientamento emotivo generale del testo, variando da -1 (molto negativo) a +1 (molto positivo). Un punteggio vicino a 0 indica un sentiment neutrale.
-    
-    - **Soggettività**: Misura quanto il testo esprime opinioni piuttosto che fatti, con un punteggio che va da 0 (molto oggettivo, basato su fatti) a 1 (molto soggettivo, basato su opinioni personali).
-    """)
+        # Visualizza polarità e soggettività
+        display_sentiment_analysis(polarity, subjectivity)
+
+        # Spiegazioni dettagliate dei punteggi
+        st.info("""
+        **Cosa significano i punteggi?**
+        
+        - **Polarità**: Indica l'orientamento emotivo generale del testo, variando da -1 (molto negativo) a +1 (molto positivo). Un punteggio vicino a 0 indica un sentiment neutrale.
+        
+        - **Soggettività**: Misura quanto il testo esprime opinioni piuttosto che fatti, con un punteggio che va da 0 (molto oggettivo, basato su fatti) a 1 (molto soggettivo, basato su opinioni personali).
+        """)
