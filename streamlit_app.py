@@ -127,8 +127,11 @@ with st.expander("Istruzioni"):
 
 st.markdown("---")
 
-user_input = st.text_area("Inserisci il testo qui:")
-target_keywords_input = st.text_input(label="", placeholder="Inserisci le Parole Chiave (separate da virgola)", label_visibility="collapsed")
+user_input = st.text_area("Inserisci il testo qui:target_keywords_input = st.text_input(
+    label="Parole Chiave Target",
+    placeholder="Inserisci le Parole Chiave (separate da virgola)",
+    label_visibility="collapsed"
+)
 
 if st.button("Analizza"):
     keywords = extract_keywords(user_input)
