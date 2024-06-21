@@ -1,6 +1,6 @@
 ![Keyword Relevance & Sentiment Analysis Tool](https://raw.githubusercontent.com/nurdigitalmarketing/keyword-relevance-and-entities-analyzer/main/keyword-relevance-and-sentiment-app.png)
 
-# Keyword Relevance & Sentiment Analysis Tool
+# Keyword Relevance & Sentiment Analyzer
 
 This Streamlit application is designed to provide intuitive and detailed text analysis focused on keyword extraction, keyword relevance, and sentiment analysis. It uses the power of advanced Python libraries such as `spaCy`, `PyTextRank`, and `TextBlob` to process and analyze input text.
 
