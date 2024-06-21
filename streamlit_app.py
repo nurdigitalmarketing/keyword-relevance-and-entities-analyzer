@@ -122,7 +122,7 @@ col1, col2 = st.columns([1, 7])
 
 # Colonna per il titolo e il testo "by NUR® Digital Marketing"
 with col2:
-    st.title('Keyword Relevance & Sentiment Analysis Tool')
+    st.title('Keyword Relevance & Sentiment Analyzer')
     st.markdown('###### by [NUR® Digital Marketing](https://www.nur.it)')
 
 # Sezione collassabile per la spiegazione dello strumento
