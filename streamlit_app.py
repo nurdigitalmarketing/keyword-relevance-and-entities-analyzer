@@ -31,6 +31,14 @@ def detect_language(text):
     except:
         return 'en'  # Default to English if detection fails
 
+# Funzione per ottenere il nome completo della lingua
+def get_language_name(lang_code):
+    language_names = {
+        'en': 'Inglese',
+        'it': 'Italiano'
+    }
+    return language_names.get(lang_code, 'Lingua sconosciuta')
+
 def extract_keywords(text, nlp):
     doc = nlp(text)
     keywords = [(phrase.text, phrase.rank) for phrase in doc._.phrases[:10]]
@@ -153,6 +161,9 @@ if st.button("Analizza"):
     if user_input:
         # Rileva la lingua del testo inserito
         lang = detect_language(user_input)
+        
+        # Mostra la lingua rilevata
+        st.info(f"Lingua rilevata: {get_language_name(lang)}")
         
         # Carica il modello appropriato
         nlp = load_spacy_model(lang)
