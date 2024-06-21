@@ -67,7 +67,7 @@ def plot_keyword_relevance(keywords):
     ax.set_xlabel('Punteggio')
     ax.set_ylabel('Parola Chiave')
     ax.set_title('Keyword Relevance Scores')
-    plt.gca().invert_yaxis()
+    ax.invert_yaxis()  # Cambiato da plt.gca().invert_yaxis() a ax.invert_yaxis()
     st.pyplot(fig)
 
 def get_relevance_label(relevance):
