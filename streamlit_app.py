@@ -167,8 +167,8 @@ if st.button("Analizza"):
         
         # Carica il modello appropriato
         nlp = load_spacy_model(lang)
-        nlp.add_pipe("textrank")
-
+        # Rimuovi la riga nlp.add_pipe("textrank") qui
+        
         keywords = extract_keywords(user_input, nlp)
         polarity, subjectivity = analyze_sentiment(user_input)
         
