@@ -6,39 +6,33 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from langdetect import detect
 
-# Funzione per caricare il modello spaCy appropriato
+# Funzione per caricare il modello spaCy con pytextrank
 @st.cache_resource
 def load_spacy_model(lang):
     if lang == 'en':
         try:
-            return spacy.load("en_core_web_sm")
+            nlp = spacy.load("en_core_web_sm")
+            nlp.add_pipe("textrank")  # Add pytextrank to the pipeline
+            return nlp
         except OSError:
             st.error("Il modello 'en_core_web_sm' non è stato trovato. Installalo eseguendo 'python -m spacy download en_core_web_sm'")
             spacy.cli.download("en_core_web_sm")
-            return spacy.load("en_core_web_sm")
+            nlp = spacy.load("en_core_web_sm")
+            nlp.add_pipe("textrank")
+            return nlp
     elif lang == 'it':
         try:
-            return spacy.load("it_core_news_sm")
+            nlp = spacy.load("it_core_news_sm")
+            nlp.add_pipe("textrank")
+            return nlp
         except OSError:
             st.error("Il modello 'it_core_news_sm' non è stato trovato. Installalo eseguendo 'python -m spacy download it_core_news_sm'")
             spacy.cli.download("it_core_news_sm")
-            return spacy.load("it_core_news_sm")
+            nlp = spacy.load("it_core_news_sm")
+            nlp.add_pipe("textrank")
+            return nlp
 
-# Funzione per rilevare la lingua
-def detect_language(text):
-    try:
-        return detect(text)
-    except:
-        return 'en'  # Default to English if detection fails
-
-# Funzione per ottenere il nome completo della lingua
-def get_language_name(lang_code):
-    language_names = {
-        'en': 'Inglese',
-        'it': 'Italiano'
-    }
-    return language_names.get(lang_code, 'Lingua sconosciuta')
-
+# Function for keyword extraction
 def extract_keywords(text, nlp):
     doc = nlp(text)
     keywords = [(phrase.text, phrase.rank) for phrase in doc._.phrases[:10]]
