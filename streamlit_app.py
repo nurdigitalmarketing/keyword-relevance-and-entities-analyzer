@@ -6,13 +6,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from langdetect import detect
 
-# Funzione per caricare il modello spaCy con pytextrank
 @st.cache_resource
 def load_spacy_model(lang):
+    """
+    Carica il modello spaCy appropriato per la lingua specificata e aggiunge pytextrank
+    per l'estrazione delle parole chiave.
+    """
     if lang == 'en':
         try:
             nlp = spacy.load("en_core_web_sm")
-            nlp.add_pipe("textrank")  # Add pytextrank to the pipeline
+            nlp.add_pipe("textrank")
             return nlp
         except OSError:
             st.error("Il modello 'en_core_web_sm' non è stato trovato. Installalo eseguendo 'python -m spacy download en_core_web_sm'")
@@ -31,8 +34,23 @@ def load_spacy_model(lang):
             nlp = spacy.load("it_core_news_sm")
             nlp.add_pipe("textrank")
             return nlp
+    else:
+        st.error("Lingua non supportata. Usa 'en' per inglese o 'it' per italiano.")
+        return None
 
-# Function for keyword extraction
+def detect_language(text):
+    try:
+        return detect(text)
+    except:
+        return 'en'
+
+def get_language_name(lang_code):
+    language_names = {
+        'en': 'Inglese',
+        'it': 'Italiano'
+    }
+    return language_names.get(lang_code, 'Lingua sconosciuta')
+
 def extract_keywords(text, nlp):
     doc = nlp(text)
     keywords = [(phrase.text, phrase.rank) for phrase in doc._.phrases[:10]]
@@ -111,35 +129,24 @@ def display_relevance_table(keywords):
     - **Bassa Rilevanza**: Parole chiave con punteggio < 0.05 sono considerate di bassa rilevanza, indicando che hanno meno importanza nel contesto del documento.
     """)
 
-# Crea una riga con 3 colonne
 col1, col2 = st.columns([1, 7])
 
-# Colonna per il titolo e il testo "by NUR® Digital Marketing"
 with col2:
     st.title('Keyword Relevance & Sentiment Analyzer')
     st.markdown('###### by [NUR® Digital Marketing](https://www.nur.it)')
 
-# Sezione collassabile per la spiegazione dello strumento
 with st.expander("Introduzione"):
     st.markdown("""
     Questo strumento è progettato per offrire un'analisi dettagliata del testo, evidenziando le parole chiave più rilevanti e fornendo un'analisi del sentiment. L'obiettivo è supportare strategie di contenuto e SEO efficaci, consentendo una comprensione profonda sia dell'importanza di specifici termini (Keyword Relevance Score) che del tono emotivo generale del testo (Sentiment Analysis).
-
-    - **Rilevanza delle Parole Chiave**: Il punteggio di rilevanza aiuta a identificare quali termini sono centrali nel testo, offrendo indicazioni preziose su quali parole chiave potrebbero ottimizzare la visibilità sui motori di ricerca e l'engagement del pubblico.
-
-    - **Analisi del Sentiment**: La valutazione del sentiment fornisce insight sul tono del testo (positivo, neutrale, negativo), cruciale per allineare i messaggi del brand con le percezioni desiderate e per analizzare feedback o recensioni in modo scalabile.
     """)
 
-# Sezione collassabile per le istruzioni
 with st.expander("Istruzioni"):
     st.markdown("""
     Segui questi passaggi per analizzare il tuo testo:
-
     1. **Inserimento Testo**: Carica il testo che desideri analizzare.
     2. **Parole Chiave Target (Opzionale)**: Specifica eventuali parole chiave di interesse.
     3. **Analisi**: Clicca su "Analizza" per eseguire l'elaborazione.
     4. **Risultati**: Esamina i risultati per rilevanza delle parole chiave e sentiment del testo.
-
-    Questo approccio fornisce una base solida per ottimizzare i contenuti in funzione degli obiettivi SEO e per valutare in modo efficace il tono comunicativo del materiale analizzato.
     """)
 
 st.markdown("---")
@@ -153,24 +160,16 @@ target_keywords_input = st.text_input(
 
 if st.button("Analizza"):
     if user_input:
-        # Rileva la lingua del testo inserito
         lang = detect_language(user_input)
-        
-        # Mostra la lingua rilevata
         st.info(f"Lingua rilevata: {get_language_name(lang)}")
         
-        # Carica il modello appropriato
         nlp = load_spacy_model(lang)
-        # Rimuovi la riga nlp.add_pipe("textrank") qui
-        
         keywords = extract_keywords(user_input, nlp)
         polarity, subjectivity = analyze_sentiment(user_input)
         
-        # Estrai parole chiave target e la loro rilevanza
         target_keywords = [keyword.strip() for keyword in target_keywords_input.split(',') if keyword.strip()]
         target_keywords_relevance = [keyword for keyword in keywords if keyword[0] in target_keywords]
         
-        # Visualizza parole chiave target in tabella
         st.subheader("Target Keyword Relevance")
         if target_keywords_relevance:
             target_keywords_df = pd.DataFrame(target_keywords_relevance, columns=["Parola Chiave Target", "Punteggio"])
@@ -178,20 +177,14 @@ if st.button("Analizza"):
         else:
             st.write("Nessuna delle parole chiave target trovata nel testo.")
         
-        # Visualizza parole chiave in tabella con etichetta di rilevanza
         display_relevance_table(keywords)
-        
-        # Visualizza grafico a barre dei punteggi di rilevanza
         plot_keyword_relevance(keywords)
-
-        # Visualizza polarità e soggettività
         display_sentiment_analysis(polarity, subjectivity)
 
-        # Spiegazioni dettagliate dei punteggi
         st.info("""
         **Cosa significano i punteggi?**
         
         - **Polarità**: Indica l'orientamento emotivo generale del testo, variando da -1 (molto negativo) a +1 (molto positivo). Un punteggio vicino a 0 indica un sentiment neutrale.
         
-        - **Soggettività**: Misura quanto il testo esprime opinioni piuttosto che fatti, con un punteggio che va da 0 (molto oggettivo, basato su fatti) a 1 (molto soggettivo, basato su opinioni personali).
+        - **Soggettività**: Misura quanto il testo esprime opinioni piuttosto che fatti, con un punteggio che va da 0 (molto oggettivo) a 1 (molto soggettivo).
         """)
